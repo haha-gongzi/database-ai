@@ -1,0 +1,6 @@
+product,category,quantity,price,sale_date
+Laptop,Electronics,5,1200.50,2026-04-01
+Mouse,Electronics,20,25.99,2026-04-01
+Desk,Furniture,2,199.99,2026-04-02
+Chair,Furniture,4,89.50,2026-04-02
+Keyboard,Electronics,10,45.00,2026-04-03
