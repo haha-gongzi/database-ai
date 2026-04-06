@@ -118,3 +118,6 @@ data/
 * SQLite is used as the database backend
 * pandas is used only for CSV ingestion
 * All SQL queries are validated before execution for security
+
+## 🎥 System Review Video
+https://drive.google.com/file/d/1fwMxY-Lcuj-665wzG1foSkDs4ELIe1F2/view?usp=sharing
