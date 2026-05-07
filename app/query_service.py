@@ -10,26 +10,22 @@ class QueryService:
         self.validator = SQLValidator(schema_manager)
 
     def execute_query(self, sql: str):
-        # 1. verity SQL
         is_valid, message = self.validator.validate(sql)
 
         if not is_valid:
             return {
                 "status": "error",
-                "message": message
+                "message": message,
             }
 
         try:
-            # 2. implement SQL
             results = self.db.fetch_all(sql)
-
             return {
                 "status": "success",
-                "data": results
+                "data": results,
             }
-
         except Exception as e:
             return {
                 "status": "error",
-                "message": str(e)
+                "message": str(e),
             }

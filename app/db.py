@@ -5,7 +5,9 @@ from pathlib import Path
 class Database:
     def __init__(self, db_path: str = "app_data.db"):
         self.db_path = db_path
-        Path(self.db_path).touch(exist_ok=True)
+
+        if self.db_path != ":memory:":
+            Path(self.db_path).touch(exist_ok=True)
 
     def connect(self):
         return sqlite3.connect(self.db_path)

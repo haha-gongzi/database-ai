@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 from app.db import Database
 
@@ -7,22 +8,23 @@ class SchemaManager:
         "int64": "INTEGER",
         "float64": "REAL",
         "object": "TEXT",
-        "bool": "INTEGER"
+        "bool": "INTEGER",
     }
 
     def __init__(self, db: Database):
         self.db = db
 
     def normalize_column_name(self, name: str) -> str:
-        return name.strip().lower().replace(" ", "_")
+        name = name.strip().lower()
+        name = re.sub(r"\W+", "_", name)
+        return name.strip("_")
 
     def infer_schema_from_dataframe(self, df: pd.DataFrame) -> dict:
         schema = {}
         for col in df.columns:
             normalized_col = self.normalize_column_name(col)
             dtype_str = str(df[col].dtype)
-            sqlite_type = self.TYPE_MAPPING.get(dtype_str, "TEXT")
-            schema[normalized_col] = sqlite_type
+            schema[normalized_col] = self.TYPE_MAPPING.get(dtype_str, "TEXT")
         return schema
 
     def list_tables(self) -> list:

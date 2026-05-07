@@ -6,50 +6,41 @@ class SQLValidator:
     def __init__(self, schema_manager: SchemaManager):
         self.schema_manager = schema_manager
 
-    def validate(self, sql: str) -> tuple[bool, str]:
-        sql_clean = sql.strip()
+    def validate(self, sql: str):
+        sql = sql.strip()
 
-        if not sql_clean:
-            return False, "Empty query."
-
-        # only one statement is allowed
-        if sql_clean.count(";") > 1:
-            return False, "Multiple statements are not allowed."
-
-        sql_no_semicolon = sql_clean.rstrip(";").strip()
-
-        # only SELECT is allowed
-        if not sql_no_semicolon.lower().startswith("select"):
+        if not sql.lower().startswith("select"):
             return False, "Only SELECT queries are allowed."
 
-        # prohibited dangerous keywords
-        forbidden_keywords = [
-            "insert", "update", "delete", "drop",
-            "alter", "create", "attach", "detach", "pragma"
-        ]
+        tables = self.schema_manager.list_tables()
 
-        lowered = sql_no_semicolon.lower()
-        for keyword in forbidden_keywords:
-            if re.search(rf"\b{keyword}\b", lowered):
-                return False, f"Forbidden keyword detected: {keyword}"
+        table_match = re.search(r'from\s+(\w+)', sql, re.IGNORECASE)
 
-        # check if the table exists
-        tables = self._extract_tables(sql_no_semicolon)
-        known_tables = self.schema_manager.list_tables()
+        if not table_match:
+            return False, "No table found in query."
 
-        for table in tables:
-            if table not in known_tables:
-                return False, f"Unknown table: {table}"
+        table_name = table_match.group(1)
+
+        if table_name not in tables:
+            return False, f"Unknown table: {table_name}"
+
+        # check columns
+        schema = self.schema_manager.get_table_schema(table_name)
+
+        select_match = re.search(
+            r'select\s+(.*?)\s+from',
+            sql,
+            re.IGNORECASE
+        )
+
+        if select_match:
+            columns_part = select_match.group(1)
+
+            if columns_part.strip() != "*":
+                columns = [col.strip() for col in columns_part.split(",")]
+
+                for col in columns:
+                    if col not in schema:
+                        return False, f"Unknown column: {col}"
 
         return True, "Query is valid."
-
-    def _extract_tables(self, sql: str) -> list:
-        pattern = r"\bfrom\s+([a-zA-Z_][a-zA-Z0-9_]*)|\bjoin\s+([a-zA-Z_][a-zA-Z0-9_]*)"
-        matches = re.findall(pattern, sql, flags=re.IGNORECASE)
-
-        tables = []
-        for match in matches:
-            for group in match:
-                if group:
-                    tables.append(group)
-        return tables

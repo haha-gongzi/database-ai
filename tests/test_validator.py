@@ -29,3 +29,25 @@ def test_unknown_table():
     validator = setup_validator()
     valid, msg = validator.validate("SELECT * FROM fake;")
     assert valid is False
+
+def test_reject_unknown_column(tmp_path):
+    db_path = tmp_path / "test.db"
+    db = Database(str(db_path))
+    schema_manager = SchemaManager(db)
+
+    schema_manager.create_table(
+        "users",
+        {
+            "name": "TEXT",
+            "age": "INTEGER"
+        }
+    )
+
+    validator = SQLValidator(schema_manager)
+
+    valid, message = validator.validate(
+        "SELECT salary FROM users;"
+    )
+
+    assert valid is False
+    assert "Unknown column" in message
